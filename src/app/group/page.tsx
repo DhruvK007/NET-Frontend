@@ -1,7 +1,10 @@
 import { currentUserServer } from "@/lib/currentUserServer";
 
 export default async function GroupManagement() {
-  const user = await currentUserServer();
-  console.log(user);
+  const { user, token } = await currentUserServer();
+  if (!user || !token) {
+    Response.redirect("/login");
+  }
+
   return null;
 }
