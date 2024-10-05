@@ -67,7 +67,7 @@ export default function LoginForm() {
           "https://localhost:7116/api/Users/Profile"
         );
         if (profileResponse.status === 200) {
-          setUser(profileResponse.data);
+          setUser({ ...profileResponse.data, token });
           toast.success("Login successful!");
           router.push("/group"); // Redirect to dashboard or home page
         }
