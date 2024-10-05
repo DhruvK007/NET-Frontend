@@ -8,7 +8,6 @@ import { Eye, EyeOff, Mail } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -52,7 +51,15 @@ export default function LoginForm() {
       );
       if (response.status === 200) {
         const token = response.data.token;
-        localStorage.setItem("token", token);
+
+        // Store the token in a cookie
+        document.cookie = `token=${token}; path=/; max-age=${
+          30 * 24 * 60 * 60
+        }; SameSite=Strict; ${
+          process.env.NODE_ENV === "production" ? "Secure" : ""
+        }`;
+
+        // Update axios default headers
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         // Fetch user profile
