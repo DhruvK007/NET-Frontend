@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ModeToggle } from "./ModeToggle";
+import { useRouter } from "next/navigation";
+
 
 export default function Component() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,6 +41,7 @@ export default function Component() {
   }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const router = useRouter();
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-black">
@@ -125,7 +128,10 @@ export default function Component() {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="space-x-4"
               >
-                <Button className="bg-green-600 text-white hover:bg-green-700 px-6 py-3">
+                <Button
+                  className="bg-green-600 text-white hover:bg-green-700 px-6 py-3"
+                  onClick={() => router.push("/login")}
+                >
                   Get Started
                 </Button>
                 <Button
@@ -195,7 +201,7 @@ export default function Component() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="h-full dark:bg-gray-900 hover:shadow-lg transition-shadow duration-300">
+                  <Card className="h-full dark:bg-gray-900 hover:shadow-lg transition-shadow duration-300 dark:border-none">
                     <CardHeader>
                       <feature.icon className="h-10 w-10 text-green-600 mb-2" />
                       <CardTitle className="text-gray-900 dark:text-white">
@@ -235,7 +241,9 @@ export default function Component() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <Button className="bg-green-600 text-white hover:bg-green-700 px-6 py-3">
+                <Button className="bg-green-600 text-white hover:bg-green-700 px-6 py-3"
+                onClick={() => router.push("login")}
+                >
                   Sign Up Now
                 </Button>
               </motion.div>

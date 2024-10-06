@@ -72,10 +72,10 @@ export default function RegisterForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto mt-8 dark:border-none">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">
-          <span className="text-black">spend</span>
+          <span className="text-black dark:text-white">spend</span>
           <span className="text-green-500">wise</span>
         </CardTitle>
         <p className="text-center text-gray-600">Create an account</p>
