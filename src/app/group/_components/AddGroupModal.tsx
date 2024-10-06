@@ -31,7 +31,7 @@ import { useAuth } from "@/context/auth-context";
 const formSchema = z.object({
   name: z.string().min(1, "Group name is required"),
   description: z.string().max(50, "Group description is too long").default(""),
-  photo: z.string().optional(),
+  photo: z.string().optional().default(""),
 });
 
 export type GroupFormData = z.infer<typeof formSchema>;
@@ -56,11 +56,12 @@ export function AddGroupModal({ token }: { token: string }) {
   const handleSubmit = async (data: GroupFormData) => {
     const loadingToast = toast.loading("Creating group...");
     const client = createClient(user?.token);
-    console.log(data);
     let response;
     try {
       response = await client.post("/api/Group/Create", {
-        body: JSON.stringify(data),
+        Name: data.name,
+        description: data.description,
+        photo: data.photo,
       });
     } catch (error) {
       console.error("Error creating group:", error);

@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,9 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PendingRequest } from "./GroupContent";
+import { createClient } from "@/lib/axios-server";
+import { useAuth } from "@/context/auth-context";
+import { on } from "events";
 
 type PendingRequestsListProps = {
   requests: PendingRequest[];
@@ -18,18 +22,33 @@ export default function PendingRequestsList({
   onRequestCancel,
 }: PendingRequestsListProps) {
   const router = useRouter();
+  const user = useAuth().user;
 
+  if (!user) {
+    router.push("/login");
+  }
   async function cancelRequest(id: string) {
     const loadingToast = toast.loading("Cancelling request...");
     try {
-      //   const response = await cancelPendingRequest(id);
-      //   if (response.success) {
-      //     toast.success(response.message, { id: loadingToast });
-      //     onRequestCancel(id);
-      //   } else {
-      //     toast.error(response.message, { id: loadingToast });
-      //   }
+      const client = createClient(user?.token);
+      const response = await client.post("/api/Group/CancelJoinRequest", {
+        joinRequestId: id,
+      });
+
+      if (response.status === 200) {
+        toast.success("Request cancelled successfully", {
+          id: loadingToast,
+        });
+        onRequestCancel(id);
+      }
+
+      if (response.status !== 200) {
+        toast.error("Failed to cancel request", {
+          id: loadingToast,
+        });
+      }
     } catch (error) {
+      console.error("Error cancelling request:", error);
       toast.error("Failed to cancel request", {
         id: loadingToast,
       });

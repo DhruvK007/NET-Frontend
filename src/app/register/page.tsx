@@ -48,7 +48,7 @@ export default function RegisterForm() {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "https://localhost:7116/api/Users/Register",
+        "http://localhost:2849/api/Users/Register",
         values
       );
       if (response.status === 201) {

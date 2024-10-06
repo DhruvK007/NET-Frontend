@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
+import { createClient } from "@/lib/axios-server";
 
 const formSchema = z.object({
   groupCode: z
@@ -44,6 +46,11 @@ export function JoinGroupModal({
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const user = useAuth().user;
+
+  if (!user) {
+    router.push("/login");
+  }
 
   const form = useForm<JoinGroupFormData>({
     resolver: zodResolver(formSchema),
@@ -63,41 +70,42 @@ export function JoinGroupModal({
     }
 
     try {
-      const response = await fetch("/api/Group/JoinRequest", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ groupCode: data.groupCode }),
+      const client = createClient(user?.token);
+      const response = await client.post("/api/Group/JoinRequest", {
+        groupCode: data.groupCode,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to send join request");
+      if (response.status !== 200) {
+        throw new Error("Failed to join group");
       }
 
-      const result = await response.json();
+      const result = response.data;
+      console.log(result);
+
+      // Create the new request object based on the API response
+      const newRequest = {
+        id: result.id,
+        groupId: result.groupId,
+        userId: result.userId,
+        status: result.status,
+        createdAt: new Date(result.createdAt),
+        group: {
+          id: result.group.id,
+          name: result.group.name,
+          description: result.group.description,
+          code: result.group.code,
+          creatorId: result.group.creatorId,
+        },
+      };
+
+      onJoinRequest(newRequest);
+
       toast.success("Join request sent successfully", {
         closeButton: true,
         duration: 4500,
         id: loadingToast,
       });
 
-      // Assuming the API returns the necessary data to create a PendingRequest object
-      const newRequest = {
-        id: result.joinRequestId,
-        groupId: result.groupId,
-        userId: result.userId,
-        status: "PENDING",
-        createdAt: new Date(),
-        group: {
-          id: result.groupId,
-          name: result.groupName,
-          description: result.groupDescription,
-          code: result.groupCode,
-          creatorId: result.groupCreatorId,
-        },
-      };
-      onJoinRequest(newRequest);
       handleClose();
     } catch (error) {
       toast.error(
@@ -106,7 +114,6 @@ export function JoinGroupModal({
       );
     }
   };
-
   const handleClose = () => {
     setOpen(false);
     form.reset();

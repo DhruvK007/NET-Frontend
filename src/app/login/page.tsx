@@ -32,7 +32,11 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { setUser, user } = useAuth();
+
+  if (user) {
+    router.push("/group");
+  }
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -46,7 +50,7 @@ export default function LoginForm() {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "https://localhost:7116/api/Users/Login",
+        "http://localhost:2849/api/Users/Login",
         values
       );
       if (response.status === 200) {
@@ -64,7 +68,7 @@ export default function LoginForm() {
 
         // Fetch user profile
         const profileResponse = await axios.get(
-          "https://localhost:7116/api/Users/Profile"
+          "http://localhost:2849/api/Users/Profile"
         );
         if (profileResponse.status === 200) {
           setUser({ ...profileResponse.data, token });
