@@ -1,3 +1,166 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { SquareSplitHorizontal, PieChart, CreditCard, Users, Menu, X } from "lucide-react"
+import { motion } from "framer-motion"
+
 export default function Home() {
-  return null;
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <header
+        className={`px-4 lg:px-6 h-16 flex items-center fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? "bg-white shadow-md dark:bg-gray-800" : "bg-transparent"
+        }`}
+      >
+        <Link className="flex items-center justify-center" href="#">
+          <SquareSplitHorizontal className="h-6 w-6 text-green-600" />
+          <span className="ml-2 text-2xl font-bold text-green-600">SpendWise</span>
+        </Link>
+        <nav className="hidden md:flex ml-auto gap-4 sm:gap-6">
+          <Link className="text-sm font-medium hover:text-green-600 transition-colors" href="#">
+            Features
+          </Link>
+          <Link className="text-sm font-medium hover:text-green-600 transition-colors" href="#">
+            Pricing
+          </Link>
+          <Link className="text-sm font-medium hover:text-green-600 transition-colors" href="#">
+            About
+          </Link>
+        </nav>
+        <Button className="ml-auto md:hidden" variant="ghost" size="icon" onClick={toggleMenu}>
+          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
+      </header>
+      {isMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed top-16 left-0 right-0 bg-white dark:bg-gray-800 shadow-md z-40 md:hidden"
+        >
+          <nav className="flex flex-col p-4">
+            <Link className="py-2 text-sm font-medium hover:text-green-600 transition-colors" href="#">
+              Features
+            </Link>
+            <Link className="py-2 text-sm font-medium hover:text-green-600 transition-colors" href="#">
+              Pricing
+            </Link>
+            <Link className="py-2 text-sm font-medium hover:text-green-600 transition-colors" href="#">
+              About
+            </Link>
+          </nav>
+        </motion.div>
+      )}
+      <main className="flex-1 pt-16">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-green-50 dark:bg-green-900">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-2"
+              >
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                  Split Expenses Effortlessly
+                </h1>
+                <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
+                  SpendWise makes it easy to track and split expenses with your friends, roommates, or travel buddies.
+                </p>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="space-x-4"
+              >
+                <Button className="bg-green-600 text-white hover:bg-green-700">Get Started</Button>
+                <Button variant="outline">Learn More</Button>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-800">
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-center mb-12">Features</h2>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                { icon: PieChart, title: "Easy Expense Tracking", description: "Log expenses quickly and categorize them for better financial management." },
+                { icon: Users, title: "Group Splitting", description: "Create groups for trips, households, or events and split costs fairly." },
+                { icon: CreditCard, title: "Settle Up", description: "See who owes what and settle debts easily within the app." },
+              ].map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Card className="h-full">
+                    <CardHeader>
+                      <feature.icon className="h-10 w-10 text-green-600 mb-2" />
+                      <CardTitle>{feature.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>{feature.description}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-green-50 dark:bg-green-900">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-2"
+              >
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Start Splitting Today</h2>
+                <p className="mx-auto max-w-[600px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                  Join thousands of users who trust SpendWise for hassle-free expense splitting.
+                </p>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <Button className="bg-green-600 text-white hover:bg-green-700">Sign Up Now</Button>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-gray-500 dark:text-gray-400">© 2023 SpendWise. All rights reserved.</p>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+          <Link className="text-xs hover:underline underline-offset-4" href="#">
+            Terms of Service
+          </Link>
+          <Link className="text-xs hover:underline underline-offset-4" href="#">
+            Privacy
+          </Link>
+        </nav>
+      </footer>
+    </div>
+  )
 }
