@@ -97,9 +97,11 @@ export default function Transaction({ transactionsData, loading }: { transaction
 
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
+        //@ts-ignore
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1
         }
+        //@ts-ignore
         if (a[sortConfig.key] > b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? 1 : -1
         }

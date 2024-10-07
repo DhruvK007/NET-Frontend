@@ -1,11 +1,11 @@
 "use client"
 
-import AddExpense from "./AddExpense"
 import PageTitle from "./PageTitle"
-import SettleUp from "./SettleUp"
+import {SettleUp} from "./SettleUp"
 import { GroupMember } from "./GroupMember"
 import Transaction from "./Transaction"
 import { Card, CardContent } from "@/components/ui/card"
+import AddExpense from "./AddExpense"
 
 interface GroupClientProps {
   groupName: string

@@ -88,7 +88,7 @@ interface Member {
   amount: number
 }
 
-// Form schema
+// Schema definition
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   amount: z
@@ -110,14 +110,14 @@ const formSchema = z.object({
     )
     .min(1, "At least one person must be selected to split with"),
   category: z.nativeEnum(CategoryTypes),
-})
+});
 
-type FormSchema = z.infer<typeof formSchema>
+type FormSchema = z.infer<typeof formSchema>;
 
 interface AddExpenseProps {
-  params: { groupID: string }
-  groupMemberName: { userId: string; name: string; avatar: string }[]
-  user: string
+  params: { groupID: string };
+  groupMemberName: { userId: string; name: string; avatar: string }[];
+  user: string;
 }
 
 export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
@@ -229,12 +229,12 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
       return
     }
 
-    const splitsall = data.splitWith.map((member) => ({
-      userId: member.id,
-      amount: member.amount || 0,
-    }))
-
-    const splits = splitsall.filter((split) => split.amount !== 0)
+    const splits = data.splitWith
+      .filter((member) => member.included && member.amount > 0)
+      .map((member) => ({
+        userId: member.id,
+        amount: member.amount,
+      }))
 
     if (splits.length < 2) {
       toast.error("Please select at least two members")
@@ -243,20 +243,25 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
 
     const loading = toast.loading("Adding Expense...")
     setOpen(false)
-    try {
-      // TODO: Implement saving to .NET API
-      // const response = await AddGroupExpense({
-      //   groupID: groupId,
-      //   paidById: String(paidById),
-      //   title: data.title,
-      //   amount: totalAmount,
-      //   date: data.date,
-      //   category: data.category,
-      //   splits: splits,
-      // })
 
-      // Simulating successful API call
-      if (true) {
+    try {
+      const response = await fetch('/api/group/expense', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          groupID: groupId,
+          paidById: paidById,
+          title: data.title,
+          amount: totalAmount,
+          date: data.date,
+          category: data.category,
+          splits: splits,
+        }),
+      })
+
+      if (response.ok) {
         toast.success("Expense added successfully", {
           closeButton: true,
           icon: "😤",
@@ -265,6 +270,7 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
         })
 
         form.reset()
+        router.refresh()
       } else {
         console.error("Failed to Add Expense")
 
@@ -276,6 +282,11 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
       }
     } catch (error) {
       console.error("Error adding expense:", error)
+      toast.error("Error Adding Expense", {
+        closeButton: true,
+        icon: "❌",
+        duration: 4500,
+      })
     }
   }
 
@@ -464,7 +475,9 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
                   <div className="mb-4">
                     <Select
                       onValueChange={(value) => {
-                        field.onChange(value)
+                        fiel
+
+d.onChange(value)
                       }}
                       defaultValue={field.value}
                     >
