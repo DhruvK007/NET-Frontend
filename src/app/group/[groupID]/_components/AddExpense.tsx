@@ -38,10 +38,8 @@ import { useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
-import { AddGroupExpense } from "../group"
 import { useRouter } from "next/navigation"
-import { categories, suggestCategory } from "@/lib/categoryKeywords"
-import { CategoryTypes } from "@prisma/client"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,19 +49,43 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 // Mapping categories to emojis
-const categoryEmojis = {
-  [CategoryTypes.Other]: "🔖",
-  [CategoryTypes.Bills]: "🧾",
-  [CategoryTypes.Food]: "🍽️",
-  [CategoryTypes.Entertainment]: "🎮",
-  [CategoryTypes.Transportation]: "🚗",
-  [CategoryTypes.EMI]: "💳",
-  [CategoryTypes.Healthcare]: "🏥",
-  [CategoryTypes.Education]: "🎓",
-  [CategoryTypes.Investment]: "💼",
-  [CategoryTypes.Shopping]: "🛒",
-  [CategoryTypes.Fuel]: "⛽",
-  [CategoryTypes.Groceries]: "🛍️",
+const categoryEmojis: Record<CategoryTypes, string> = {
+  Other: "🔖",
+  Bills: "🧾",
+  Food: "🍽️",
+  Entertainment: "🎮",
+  Transportation: "🚗",
+  EMI: "💳",
+  Healthcare: "🏥",
+  Education: "🎓",
+  Investment: "💼",
+  Shopping: "🛒",
+  Fuel: "⛽",
+  Groceries: "🛍️",
+}
+
+enum CategoryTypes {
+  Other = "Other",
+  Bills = "Bills",
+  Food = "Food",
+  Entertainment = "Entertainment",
+  Transportation = "Transportation",
+  EMI = "EMI",
+  Healthcare = "Healthcare",
+  Education = "Education",
+  Investment = "Investment",
+  Shopping = "Shopping",
+  Fuel = "Fuel",
+  Groceries = "Groceries",
+}
+
+interface Member {
+  id: string
+  name: string
+  avatar: string
+  included: boolean
+  isMe: boolean
+  amount: number
 }
 
 // Form schema
@@ -90,32 +112,18 @@ const formSchema = z.object({
   category: z.nativeEnum(CategoryTypes),
 })
 
-export function AddExpense({
-  params,
-  groupMemberName,
-  user,
-}: {
+type FormSchema = z.infer<typeof formSchema>
+
+interface AddExpenseProps {
   params: { groupID: string }
   groupMemberName: { userId: string; name: string; avatar: string }[]
   user: string
-}) {
+}
+
+export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
-  const [suggestedCategory, setSuggestedCategory] = useState<CategoryTypes>(
-    CategoryTypes.Other
-  )
-
-  // State for members
-  const [members, setMembers] = useState<
-    {
-      id: string
-      name: string
-      avatar: string
-      included: boolean
-      isMe: boolean
-      amount: number
-    }[]
-  >([])
+  const [members, setMembers] = useState<Member[]>([])
 
   useEffect(() => {
     setMembers(
@@ -130,7 +138,7 @@ export function AddExpense({
     )
   }, [groupMemberName, user])
 
-  const form = useForm({
+  const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
@@ -145,22 +153,6 @@ export function AddExpense({
 
   const watchAmount = form.watch("amount")
   const watchSplitType = form.watch("splitType")
-  const watchTitle = form.watch("title")
-
-  useEffect(() => {
-    if (watchTitle) {
-      const suggested = suggestCategory(watchTitle)
-      setSuggestedCategory(suggested)
-
-      // Always update the form value with the new suggestion
-      //@ts-ignore
-      form.setValue("category", suggested, { shouldValidate: true })
-    } else {
-      setSuggestedCategory(CategoryTypes.Other)
-      //@ts-ignore
-      form.setValue("category", CategoryTypes.Other, { shouldValidate: true })
-    }
-  }, [watchTitle, form])
 
   useEffect(() => {
     const totalAmount = parseFloat(watchAmount) || 0
@@ -215,7 +207,7 @@ export function AddExpense({
   }
 
   // Form submission
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormSchema) => {
     const totalAmount = parseFloat(data.amount)
     const totalSplitAmount = data.splitWith.reduce(
       (sum, member) => sum + (member.included ? member.amount : 0),
@@ -252,17 +244,19 @@ export function AddExpense({
     const loading = toast.loading("Adding Expense...")
     setOpen(false)
     try {
-      const response = await AddGroupExpense({
-        groupID: groupId,
-        paidById: String(paidById),
-        title: data.title,
-        amount: totalAmount,
-        date: data.date,
-        category: data.category,
-        splits: splits,
-      })
+      // TODO: Implement saving to .NET API
+      // const response = await AddGroupExpense({
+      //   groupID: groupId,
+      //   paidById: String(paidById),
+      //   title: data.title,
+      //   amount: totalAmount,
+      //   date: data.date,
+      //   category: data.category,
+      //   splits: splits,
+      // })
 
-      if (response.success) {
+      // Simulating successful API call
+      if (true) {
         toast.success("Expense added successfully", {
           closeButton: true,
           icon: "😤",
@@ -334,29 +328,26 @@ export function AddExpense({
                               variant="outline"
                               className="w-full justify-between sm:w-[80px]"
                             >
-                              {categoryEmojis[field.value]}
+                              {categoryEmojis[field.value as CategoryTypes]}
                               <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-[200px]">
                             <ScrollArea className="h-[300px]">
-                              {categories.map((category) => (
+                              {Object.entries(CategoryTypes).map(([key, value]) => (
                                 <DropdownMenuItem
-                                  key={category.name}
-                                  onSelect={() => field.onChange(category.name)}
+                                  key={key}
+                                  onSelect={() => field.onChange(value)}
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      category.name === field.value
+                                      value === field.value
                                         ? "opacity-100"
                                         : "opacity-0"
                                     )}
                                   />
-                                  {categoryEmojis[category.name]}{" "}
-                                  {category.name}
-                                  {category.name === suggestedCategory &&
-                                    " (Suggested)"}
+                                  {categoryEmojis[value]} {value}
                                 </DropdownMenuItem>
                               ))}
                             </ScrollArea>

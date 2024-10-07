@@ -49,7 +49,7 @@ export default function GroupClientComponent({
             👋
           </p>
           <div className="flex w-full gap-2 sm:ml-auto sm:w-auto">
-            {/* <AddExpense
+            <AddExpense
               params={{ groupID: leave.groupId }}
               groupMemberName={groupMembers}
               user={userId}
@@ -62,7 +62,7 @@ export default function GroupClientComponent({
                 expenses: [],
               }))}
               user={userId}
-            /> */}
+            />
           </div>
         </div>
         <section className="text-bl grid w-full grid-cols-1 gap-4 transition-all lg:grid-cols-3">
