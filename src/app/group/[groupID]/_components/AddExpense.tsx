@@ -1,52 +1,53 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { cn } from "@/lib/utils"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
-import { CalendarIcon, Check, ChevronDown } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
-import * as z from "zod"
-import { useRouter } from "next/navigation"
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon, Check, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { useRouter } from "next/navigation";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { createClient } from "@/lib/axios-server";
 
 // Mapping categories to emojis
 const categoryEmojis: Record<CategoryTypes, string> = {
@@ -62,7 +63,7 @@ const categoryEmojis: Record<CategoryTypes, string> = {
   Shopping: "🛒",
   Fuel: "⛽",
   Groceries: "🛍️",
-}
+};
 
 enum CategoryTypes {
   Other = "Other",
@@ -80,12 +81,12 @@ enum CategoryTypes {
 }
 
 interface Member {
-  id: string
-  name: string
-  avatar: string
-  included: boolean
-  isMe: boolean
-  amount: number
+  id: string;
+  name: string;
+  avatar: string;
+  included: boolean;
+  isMe: boolean;
+  amount: number;
 }
 
 // Schema definition
@@ -118,12 +119,20 @@ interface AddExpenseProps {
   params: { groupID: string };
   groupMemberName: { userId: string; name: string; avatar: string }[];
   user: string;
+  token: string;
 }
 
-export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
-  const [open, setOpen] = useState(false)
-  const router = useRouter()
-  const [members, setMembers] = useState<Member[]>([])
+export function AddExpense({
+  params,
+  groupMemberName,
+  user,
+  token,
+}: AddExpenseProps) {
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const [members, setMembers] = useState<Member[]>([]);
+
+  const client = createClient(token);
 
   useEffect(() => {
     setMembers(
@@ -135,8 +144,8 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
         isMe: member.userId === user,
         amount: 0,
       }))
-    )
-  }, [groupMemberName, user])
+    );
+  }, [groupMemberName, user]);
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -149,147 +158,176 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
       splitWith: members,
       category: CategoryTypes.Food,
     },
-  })
+  });
 
-  const watchAmount = form.watch("amount")
-  const watchSplitType = form.watch("splitType")
+  const watchAmount = form.watch("amount");
+  const watchSplitType = form.watch("splitType");
 
   useEffect(() => {
-    const totalAmount = parseFloat(watchAmount) || 0
-    const splitType = watchSplitType
+    const totalAmount = parseFloat(watchAmount) || 0;
+    const splitType = watchSplitType;
 
-    const includedMembers = members.filter((m) => m.included)
-    let updatedMembers = [...members]
+    const includedMembers = members.filter((m) => m.included);
+    let updatedMembers = [...members];
 
     if (splitType === "Equally") {
-      const splitAmount = totalAmount / includedMembers.length || 0
+      const splitAmount = totalAmount / includedMembers.length || 0;
       updatedMembers = updatedMembers.map((member) => ({
         ...member,
         amount: member.included ? splitAmount : 0,
-      }))
+      }));
     } else if (splitType === "As Amounts") {
       const totalAssigned = updatedMembers.reduce(
         (sum, member) => sum + (member.included ? member.amount : 0),
         0
-      )
-      const remaining = totalAmount - totalAssigned
+      );
+      const remaining = totalAmount - totalAssigned;
       if (remaining > 0) {
-        const splitRemaining = remaining / includedMembers.length
+        const splitRemaining = remaining / includedMembers.length;
         updatedMembers = updatedMembers.map((member) => ({
           ...member,
           amount: member.included ? member.amount + splitRemaining : 0,
-        }))
+        }));
       }
     }
 
     const hasChanged =
-      JSON.stringify(members) !== JSON.stringify(updatedMembers)
+      JSON.stringify(members) !== JSON.stringify(updatedMembers);
     if (hasChanged) {
-      setMembers(updatedMembers)
-      form.setValue("splitWith", updatedMembers)
+      setMembers(updatedMembers);
+      form.setValue("splitWith", updatedMembers);
     }
-  }, [watchAmount, watchSplitType, members, form])
+  }, [watchAmount, watchSplitType, members, form]);
 
   const handleMemberToggle = (id: string, included: boolean) => {
     const updatedMembers = members.map((m) =>
       m.id === id ? { ...m, included, amount: included ? m.amount : 0 } : m
-    )
-    setMembers(updatedMembers)
-    form.setValue("splitWith", updatedMembers)
-  }
+    );
+    setMembers(updatedMembers);
+    form.setValue("splitWith", updatedMembers);
+  };
 
   const handleAmountChange = (id: string, amount: number) => {
     const updatedMembers = members.map((m) =>
       m.id === id ? { ...m, amount } : m
-    )
-    setMembers(updatedMembers)
-    form.setValue("splitWith", updatedMembers)
-  }
+    );
+    setMembers(updatedMembers);
+    form.setValue("splitWith", updatedMembers);
+  };
 
   // Form submission
   const onSubmit = async (data: FormSchema) => {
-    const totalAmount = parseFloat(data.amount)
-    const totalSplitAmount = data.splitWith.reduce(
-      (sum, member) => sum + (member.included ? member.amount : 0),
-      0
-    )
+    const totalAmount = parseFloat(data.amount);
+
+    const totalSplitAmount = data.splitWith.reduce((sum, member) => {
+      if (member.included && typeof member.amount === "number") {
+        return sum + member.amount; // Ensure member.amount is a number
+      }
+      return sum;
+    }, 0);
 
     if (Math.abs(totalSplitAmount - totalAmount) > 0.01) {
       toast.error(
         "The split amounts do not add up to the total expense amount."
-      )
-      return
+      );
+      return;
     }
 
-    const groupId = params.groupID
-    const paidById = members.find((member) => member.name === data.paidBy)?.id
+    const groupId = params.groupID;
+    const paidById = members.find((member) => member.name === data.paidBy)?.id;
 
     if (!paidById) {
-      console.error("PaidBy user ID not found")
-      return
+      console.error("PaidBy user ID not found");
+      return;
     }
 
     const splits = data.splitWith
-      .filter((member) => member.included && member.amount > 0)
+      .filter(
+        (member) =>
+          member.included &&
+          typeof member.amount === "number" &&
+          member.amount > 0
+      )
       .map((member) => ({
-        userId: member.id,
-        amount: member.amount,
-      }))
+        UserId: member.id,
+        Amount: member.amount,
+      }));
 
     if (splits.length < 2) {
-      toast.error("Please select at least two members")
-      return
+      toast.error("Please select at least two members");
+      return;
+    }
+    if (splits.length < 2) {
+      toast.error("Please select at least two members");
+      return;
     }
 
-    const loading = toast.loading("Adding Expense...")
-    setOpen(false)
+    const loading = toast.loading("Adding Expense...");
+    setOpen(false);
+
+    const CategoryTypee = [
+      "Other",
+      "Bills",
+      "Food",
+      "Entertainment",
+      "Transportation",
+      "EMI",
+      "Healthcare",
+      "Education",
+      "Investment",
+      "Shopping",
+      "Fuel",
+      "Groceries",
+    ]
+
+    const categoryNumber = CategoryTypee.indexOf(data.category);
 
     try {
-      const response = await fetch('/api/group/expense', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          groupID: groupId,
-          paidById: paidById,
-          title: data.title,
-          amount: totalAmount,
-          date: data.date,
-          category: data.category,
-          splits: splits,
-        }),
-      })
+      const response = await client.post("/api/GroupExpense/AddExpense", {
+        GroupId: groupId,
+        PaidById: paidById,
+        Category: categoryNumber, // Category from form data
+        Amount: totalAmount, // Total amount
+        Title: data.title, // Title from form data
+        Date: new Date().toISOString(), // Properly formatted date
+        Splits: splits, // Array of split data
+      });
 
-      if (response.ok) {
-        toast.success("Expense added successfully", {
-          closeButton: true,
-          icon: "😤",
-          duration: 4500,
-          id: loading,
-        })
+      if (response) {
+        toast.success(
+          `Expense added successfully. ID: ${response.data.ExpenseId}`,
+          {
+            closeButton: true,
+            icon: "😤",
+            duration: 4500,
+            id: loading,
+          }
+        );
 
-        form.reset()
-        router.refresh()
+        form.reset();
+        router.refresh();
       } else {
-        console.error("Failed to Add Expense")
+        console.error("Failed to Add Expense");
+        console.log(response);
 
         toast.error("Error Adding Expense", {
           closeButton: true,
           icon: "❌",
           duration: 4500,
-        })
+        });
       }
     } catch (error) {
-      console.error("Error adding expense:", error)
+      console.log(error);
+
+      console.error("Error adding expense:", error);
+
       toast.error("Error Adding Expense", {
         closeButton: true,
         icon: "❌",
         duration: 4500,
-      })
+      });
     }
-  }
-
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -345,22 +383,24 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-[200px]">
                             <ScrollArea className="h-[300px]">
-                              {Object.entries(CategoryTypes).map(([key, value]) => (
-                                <DropdownMenuItem
-                                  key={key}
-                                  onSelect={() => field.onChange(value)}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      value === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {categoryEmojis[value]} {value}
-                                </DropdownMenuItem>
-                              ))}
+                              {Object.entries(CategoryTypes).map(
+                                ([key, value]) => (
+                                  <DropdownMenuItem
+                                    key={key}
+                                    onSelect={() => field.onChange(value)}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        value === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {categoryEmojis[value]} {value}
+                                  </DropdownMenuItem>
+                                )
+                              )}
                             </ScrollArea>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -389,7 +429,7 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
                         {...field}
                         className="ml-2 flex-grow"
                         onChange={(e) => {
-                          field.onChange(e)
+                          field.onChange(e);
                         }}
                       />
                     </FormControl>
@@ -475,9 +515,7 @@ export function AddExpense({ params, groupMemberName, user }: AddExpenseProps) {
                   <div className="mb-4">
                     <Select
                       onValueChange={(value) => {
-                        fiel
-
-d.onChange(value)
+                        field.onChange(value);
                       }}
                       defaultValue={field.value}
                     >
@@ -492,7 +530,9 @@ d.onChange(value)
                   </div>
 
                   <div
-                    className={`grid grid-cols-1 content-start gap-2 ${members.length < 3 ? "" : "max-h-[40vh] sm:max-h-[30vh]"} overflow-y-auto`}
+                    className={`grid grid-cols-1 content-start gap-2 ${
+                      members.length < 3 ? "" : "max-h-[40vh] sm:max-h-[30vh]"
+                    } overflow-y-auto`}
                   >
                     {members.map((member) => (
                       <div
@@ -559,7 +599,7 @@ d.onChange(value)
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-export default AddExpense
+export default AddExpense;

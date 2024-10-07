@@ -22,6 +22,7 @@ interface GroupClientProps {
   usersYouNeedToPay: any[]
   transactionData: any[]
   balance: any[]
+  token: string
 }
 
 export default function GroupClientComponent({
@@ -34,6 +35,7 @@ export default function GroupClientComponent({
   usersYouNeedToPay,
   transactionData,
   balance,
+  token,
 }: GroupClientProps) {
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-wrap items-center justify-between p-4">
@@ -53,6 +55,7 @@ export default function GroupClientComponent({
               params={{ groupID: leave.groupId }}
               groupMemberName={groupMembers}
               user={userId}
+              token={token}
             />
             <SettleUp
               params={{ groupID: leave.groupId }}

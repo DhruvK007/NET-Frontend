@@ -42,6 +42,7 @@ export default async function GroupPage(params: { params: { groupID: string } })
         usersYouNeedToPay={usersYouNeedToPay}
         transactionData={transactionData}
         balance={balance}
+        token={token}
       />
     );
   } catch (error) {

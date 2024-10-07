@@ -76,6 +76,11 @@ interface GroupMemberProps {
 }
 
 export const GroupMember = ({ loading, balance }: GroupMemberProps) => {
+  
+  console.log("GroupMember");
+  console.log(balance);
+  console.log(loading);
+  
   return (
     <Card className="w-full">
       <CardHeader>
@@ -91,8 +96,13 @@ export const GroupMember = ({ loading, balance }: GroupMemberProps) => {
             amountColor={member.amountColor}
             avatar={member.avatar}
             userId={member.userId}
-            detailedBalance={member.detailedBalance.map((user)=>{ return {...user,avatar:balance.map((bal)=>
-              user.userId===bal.userId? bal.avatar : ""  )[0]}})}
+            detailedBalance={(member.detailedBalance || []).map((user) => { // Check if detailedBalance exists
+              const matchedUser = balance.find((bal) => user.userId === bal.userId);
+              return {
+                ...user,
+                avatar: matchedUser ? matchedUser.avatar : "",
+              };
+            })}
           />
         ))}
         {loading && (
@@ -104,5 +114,5 @@ export const GroupMember = ({ loading, balance }: GroupMemberProps) => {
         )}
       </CardContent>
     </Card>
-  )
-}
+  );
+};
