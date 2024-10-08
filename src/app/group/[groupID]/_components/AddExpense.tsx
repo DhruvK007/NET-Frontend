@@ -117,7 +117,7 @@ type FormSchema = z.infer<typeof formSchema>;
 
 interface AddExpenseProps {
   params: { groupID: string };
-  groupMemberName: { userId: string; name: string; avatar: string }[];
+  groupMemberName: { userId: string; name: string; avatar?: string }[];
   user: string;
   token: string;
 }
@@ -139,7 +139,7 @@ export function AddExpense({
       groupMemberName.map((member) => ({
         id: member.userId,
         name: member.name,
-        avatar: member.avatar,
+        avatar: member.avatar ?? '',
         included: true,
         isMe: member.userId === user,
         amount: 0,
@@ -295,7 +295,7 @@ export function AddExpense({
 
       if (response) {
         toast.success(
-          `Expense added successfully. ID: ${response.data.ExpenseId}`,
+          `Expense added successfully.`,
           {
             closeButton: true,
             icon: "😤",

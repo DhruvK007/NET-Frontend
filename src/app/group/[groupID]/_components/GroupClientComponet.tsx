@@ -57,7 +57,7 @@ export default function GroupClientComponent({
               user={userId}
               token={token}
             />
-            <SettleUp
+           <SettleUp
               params={{ groupID: leave.groupId }}
               groupMemberName={groupMembers}
               usersYouNeedToPay={usersYouNeedToPay.map((user) => ({

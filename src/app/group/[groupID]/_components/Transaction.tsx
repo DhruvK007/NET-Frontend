@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import React, { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useMemo } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -9,56 +9,35 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  XIcon,
   ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import TransactionTableSkeleton from "./TransactionSkeleton";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "lucide-react"
+import TransactionTableSkeleton from "./TransactionSkeleton"
 
 interface ExpenseSplit {
-  userName: string;
-  expenseId: string;
-  amount: number;
-  isPaid: "PAID" | "UNPAID" | "PARTIALLY_PAID";
+  userName: string
+  amount: number
+  status: number
 }
 
 interface Transaction {
-  groupId: string;
-  expenseId: string;
-  amount: number;
-  category: string;
-  paidById: string;
-  description: string;
-  date: string;
-  status: "UNSETTLED" | "PARTIALLY_SETTLED" | "SETTLED" | "CANCELLED";
-  PaidByName: string;
-  expenseSplits: ExpenseSplit[];
+  groupId: string
+  expenseId: string
+  amount: number
+  category: string
+  paidById: string
+  description: string
+  date: string
+  status: number
+  PaidByName: string
+  splits: ExpenseSplit[]
 }
 
 const columns = [
@@ -69,43 +48,39 @@ const columns = [
   { id: "amount", label: "Amount", sortable: true },
   { id: "status", label: "Status", sortable: false },
   { id: "action", label: "View split", sortable: false },
-];
+]
 
 export default function Transaction({
   transactionsData,
   loading,
 }: {
-  transactionsData: Transaction[];
-  loading: boolean;
+  transactionsData: Transaction[]
+  loading: boolean
 }) {
-
-  console.log(JSON.stringify(transactionsData));
-  
-
-  const [selectedExpense, setSelectedExpense] = useState<string | null>(null);
-  const [showDetailed, setShowDetailed] = useState(false);
-  const [selectedColumns, setSelectedColumns] = useState(
-    columns.map((col) => col.id)
-  );
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedExpenses, setSelectedExpenses] = useState<{ [key: string]: boolean }>({})
+  const [showDetailed, setShowDetailed] = useState(false)
+  const [selectedColumns, setSelectedColumns] = useState(columns.map((col) => col.id))
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
   const [sortConfig, setSortConfig] = useState<{
-    key: string;
-    direction: "ascending" | "descending";
-  } | null>(null);
+    key: string
+    direction: "ascending" | "descending"
+  } | null>(null)
 
   const handleSplitClick = (expenseId: string) => {
-    setSelectedExpense(selectedExpense === expenseId ? null : expenseId);
-  };
+    setSelectedExpenses(prev => ({
+      ...prev,
+      [expenseId]: !prev[expenseId] // Toggle only the specific expenseId
+    }))
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    });
-  };
+    })
+  }
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -113,61 +88,51 @@ export default function Transaction({
       currency: "INR",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(amount);
-  };
+    }).format(amount)
+  }
 
   const filteredTransactions = useMemo(() => {
-    if (!transactionsData) return [];
+    if (!transactionsData) return []
     let filtered = showDetailed
       ? transactionsData
-      : transactionsData.filter((t) => t.status !== "SETTLED");
+      : transactionsData.filter((t) => t.status !== 3)
 
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
-        //@ts-ignore
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === "ascending" ? -1 : 1;
+        if (a[sortConfig.key as keyof Transaction] < b[sortConfig.key as keyof Transaction]) {
+          return sortConfig.direction === "ascending" ? -1 : 1
         }
-        //@ts-ignore
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === "ascending" ? 1 : -1;
+        if (a[sortConfig.key as keyof Transaction] > b[sortConfig.key as keyof Transaction]) {
+          return sortConfig.direction === "ascending" ? 1 : -1
         }
-        return 0;
-      });
+        return 0
+      })
     }
 
-    return filtered;
-  }, [transactionsData, showDetailed, sortConfig]);
+    return filtered
+  }, [transactionsData, showDetailed, sortConfig])
 
   const paginatedTransactions = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredTransactions, currentPage, itemsPerPage]);
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredTransactions.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredTransactions, currentPage, itemsPerPage])
 
-  const pageCount = Math.ceil(filteredTransactions.length / itemsPerPage);
-
-  const toggleColumn = (columnId: string) => {
-    setSelectedColumns((prev) =>
-      prev.includes(columnId)
-        ? prev.filter((id) => id !== columnId)
-        : [...prev, columnId]
-    );
-  };
+  const pageCount = Math.ceil(filteredTransactions.length / itemsPerPage)
 
   const requestSort = (key: string) => {
-    let direction: "ascending" | "descending" = "ascending";
+    let direction: "ascending" | "descending" = "ascending"
     if (
       sortConfig &&
       sortConfig.key === key &&
       sortConfig.direction === "ascending"
     ) {
-      direction = "descending";
+      direction = "descending"
     }
-    setSortConfig({ key, direction });
-  };
+    setSortConfig({ key, direction })
+  }
 
   if (loading) {
-    return <TransactionTableSkeleton />;
+    return <TransactionTableSkeleton />
   }
 
   return (
@@ -197,57 +162,6 @@ export default function Transaction({
               Show
             </label>
           </div>
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:text-primary hover:border-primary/30 transition-colors duration-200 mt-0"
-              >
-                Simple View
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-2">
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium mb-1">Select columns</h4>
-                {columns.map((column) => (
-                  <div
-                    key={column.id}
-                    className={`flex items-center justify-between p-1 text-sm rounded-sm cursor-pointer transition-colors ${
-                      selectedColumns.includes(column.id)
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
-                    }`}
-                    onClick={() => toggleColumn(column.id)}
-                  >
-                    <span>{column.label}</span>
-                    {selectedColumns.includes(column.id) && (
-                      <XIcon className="h-3 w-3" />
-                    )}
-                  </div>
-                ))}
-                <div className="flex justify-between pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs px-2 py-1"
-                    onClick={() => setSelectedColumns([])}
-                  >
-                    Clear All
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs px-2 py-1"
-                    onClick={() =>
-                      setSelectedColumns(columns.map((col) => col.id))
-                    }
-                  >
-                    Select All
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
         </div>
       </CardHeader>
       <CardContent>
@@ -268,9 +182,7 @@ export default function Transaction({
                           <Button
                             variant="ghost"
                             onClick={() => requestSort(column.id)}
-                            className={`flex items-center ${
-                              column.id === "amount" ? "justify-end w-full" : ""
-                            }`}
+                            className={`flex items-center ${column.id === "amount" ? "justify-end w-full" : ""}`}
                           >
                             {column.label}
                             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -322,173 +234,97 @@ export default function Transaction({
                         <TableCell>
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              transaction.status === "SETTLED"
+                              transaction.status === 2
                                 ? "bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                : transaction.status === "PARTIALLY_SETTLED"
+                                : transaction.status === 1
                                 ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
                                 : "bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-100"
                             }`}
                           >
-                            {transaction.status === "SETTLED" && "Cleared"}
-                            {transaction.status === "PARTIALLY_SETTLED" &&
-                              "Partial"}
-                            {transaction.status === "UNSETTLED" && "Pending"}
+                            {transaction.status === 2
+                              ? "Paid"
+                              : transaction.status === 1
+                              ? "Partially Paid"
+                              : "Pending"}
                           </span>
                         </TableCell>
                       )}
                       {selectedColumns.includes("action") && (
-                        <TableCell>
+                        <TableCell className="text-right">
                           <Button
                             variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleSplitClick(transaction.expenseId)
-                            }
-                            className="flex items-center gap-1 p-1 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:text-primary hover:border-primary/30 transition-colors duration-200 rounded-md"
+                            onClick={() => handleSplitClick(transaction.expenseId)}
+                            className="items-center space-x-2"
                           >
-                            {selectedExpense === transaction.expenseId ? (
-                              <>
-                                <ChevronUp size={16} />
-                                <span className="text-xs font-medium">
-                                  Hide
-                                </span>
-                              </>
+                            <span>Split</span>
+                            {selectedExpenses[transaction.expenseId] ? (
+                              <ChevronUp className="h-4 w-4" />
                             ) : (
-                              <>
-                                <ChevronDown size={16} />
-                                <span className="text-xs font-medium">
-                                  Show
-                                </span>
-                              </>
+                              <ChevronDown className="h-4 w-4" />
                             )}
                           </Button>
                         </TableCell>
                       )}
                     </TableRow>
-                    {selectedColumns.includes("action") &&
-                      selectedExpense === transaction.expenseId && (
-                        <TableRow>
-                          <TableCell colSpan={7} className="p-0">
-                            <div className="bg-muted/50 dark:bg-muted/20 p-4 rounded-lg mt-2 w-full overflow-x-auto">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead className="w-[200px]">
-                                      User Name
-                                    </TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">
-                                      Amount
-                                    </TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {transaction.expenseSplits &&
-                                    transaction.expenseSplits.map(
-                                      (split, index) => (
-                                        <TableRow
-                                          key={index}
-                                          className="hover:bg-muted/70 dark:hover:bg-muted/30 transition-colors"
+                    {selectedExpenses[transaction.expenseId] && (
+                      <TableRow>
+                        <TableCell colSpan={7}>
+                          <div className="p-4">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>User</TableHead>
+                                  <TableHead>Amount</TableHead>
+                                  <TableHead>Status</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {Array.isArray(transaction.splits) &&
+                                transaction.splits.length > 0 ? (
+                                  transaction.splits.map((split, index) => (
+                                    <TableRow key={index}>
+                                      <TableCell>{split.userName}</TableCell>
+                                      <TableCell className="text-right">
+                                        {formatAmount(split.amount)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <span
+                                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                            split.status === 2
+                                              ? "bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-100"
+                                              : split.status === 1
+                                              ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+                                              : "bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-100"
+                                          }`}
                                         >
-                                          <TableCell className="font-medium">
-                                            {split.userName}
-                                          </TableCell>
-                                          <TableCell>
-                                            <span
-                                              className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                split.isPaid === "PAID"
-                                                  ? "bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-100"
-                                                  : "bg-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                                              }`}
-                                            >
-                                              {split.isPaid}
-                                            </span>
-                                          </TableCell>
-                                          <TableCell className="text-right font-semibold">
-                                            {formatAmount(split.amount)}
-                                          </TableCell>
-                                        </TableRow>
-                                      )
-                                    )}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
+                                          {split.status === 2
+                                            ? "Paid"
+                                            : split.status === 1
+                                            ? "Partially Paid"
+                                            : "Pending"}
+                                        </span>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))
+                                ) : (
+                                  <TableRow>
+                                    <TableCell colSpan={3} className="text-center">
+                                      No splits available
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </React.Fragment>
                 ))}
             </TableBody>
           </Table>
         </div>
-        <div className="flex sm:hidden items-center justify-between space-x-2 py-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Previous page</span>
-          </Button>
-          <span className="text-sm font-medium">
-            Page {currentPage} of {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, pageCount))
-            }
-            disabled={currentPage === pageCount}
-          >
-            <ChevronRight className="h-4 w-4" />
-            <span className="sr-only">Next page</span>
-          </Button>
-        </div>
-        <div className="hidden sm:flex flex-row items-center justify-between  space-y-0 space-x-2 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium">
-              Page {currentPage} of {pageCount}
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(value) => {
-                setItemsPerPage(Number(value));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[70px]">
-                <SelectValue placeholder={itemsPerPage} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, pageCount))
-            }
-            disabled={currentPage === pageCount}
-          >
-            Next
-          </Button>
-        </div>
       </CardContent>
     </Card>
-  );
+  )
 }
