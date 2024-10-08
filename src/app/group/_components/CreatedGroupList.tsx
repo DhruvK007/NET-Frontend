@@ -28,7 +28,7 @@ const CreatedGroupsList = ({ groups }: { groups: CreatedGroup[] }) => {
         {groups.map((group) => (
           <Card
             key={group.id}
-            className="transform transition-transform hover:scale-105 hover:shadow-lg"
+            className="transform transition-transform hover:scale-105 hover:shadow-lg dark:border-none"
           >
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
