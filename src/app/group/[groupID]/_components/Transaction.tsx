@@ -28,11 +28,11 @@ interface ExpenseSplit {
 }
 
 interface Transaction {
-  groupId: string
+  id: string
   expenseId: string
   amount: number
   category: string
-  paidById: string
+  paidBy: string
   description: string
   date: string
   status: number
@@ -57,7 +57,7 @@ export default function Transaction({
   transactionsData: Transaction[]
   loading: boolean
 }) {
-  const [selectedExpenses, setSelectedExpenses] = useState<{ [key: string]: boolean }>({})
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
   const [showDetailed, setShowDetailed] = useState(false)
   const [selectedColumns, setSelectedColumns] = useState(columns.map((col) => col.id))
   const [currentPage, setCurrentPage] = useState(1)
@@ -68,10 +68,7 @@ export default function Transaction({
   } | null>(null)
 
   const handleSplitClick = (expenseId: string) => {
-    setSelectedExpenses(prev => ({
-      ...prev,
-      [expenseId]: !prev[expenseId] // Toggle only the specific expenseId
-    }))
+    setSelectedExpenseId(prevId => prevId === expenseId ? null : expenseId)
   }
 
   const formatDate = (dateString: string) => {
@@ -223,7 +220,7 @@ export default function Transaction({
                         <TableCell>{transaction.category}</TableCell>
                       )}
                       {selectedColumns.includes("paidBy") && (
-                        <TableCell>{transaction.PaidByName}</TableCell>
+                        <TableCell>{transaction.paidBy}</TableCell>
                       )}
                       {selectedColumns.includes("amount") && (
                         <TableCell className="text-right font-semibold">
@@ -253,11 +250,11 @@ export default function Transaction({
                         <TableCell className="text-right">
                           <Button
                             variant="outline"
-                            onClick={() => handleSplitClick(transaction.expenseId)}
+                            onClick={() => handleSplitClick(transaction.id)}
                             className="items-center space-x-2"
                           >
                             <span>Split</span>
-                            {selectedExpenses[transaction.expenseId] ? (
+                            {selectedExpenseId === transaction.id ? (
                               <ChevronUp className="h-4 w-4" />
                             ) : (
                               <ChevronDown className="h-4 w-4" />
@@ -266,7 +263,7 @@ export default function Transaction({
                         </TableCell>
                       )}
                     </TableRow>
-                    {selectedExpenses[transaction.expenseId] && (
+                    {selectedExpenseId === transaction.id && (
                       <TableRow>
                         <TableCell colSpan={7}>
                           <div className="p-4">

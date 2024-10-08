@@ -18,7 +18,7 @@ export default async function GroupPage(params: { params: { groupID: string } })
   try {
     const response = await client.get(`/api/Group/${groupId}/PageData`);
 
-    console.log(JSON.stringify(response.data, null, 2));
+    console.log(JSON.stringify(response.data));
     
 
     console.log("usersYouNeedToPay");
