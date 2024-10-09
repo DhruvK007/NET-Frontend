@@ -257,8 +257,13 @@ export function SettleUp({
     });
     
 
-        toast.dismiss(loading);
-        if (response) {
+          toast.dismiss(loading);
+
+          console.log("response", response);
+          
+
+
+        if (response.status === 200) {
           toast.success("Successfully settled up!", {
             closeButton: true,
             icon: "🤝",
