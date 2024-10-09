@@ -77,12 +77,12 @@ interface GroupMemberProps {
 
 export const GroupMember = ({ loading, balance }: GroupMemberProps) => {
   
-  console.log("GroupMember");
-  console.log(balance);
-  console.log(loading);
+  // console.log("GroupMember");
+  // console.log(balance);
+  // console.log(loading);
   
   return (
-    <Card className="w-full">
+    <Card className="w-full dark:border-none">
       <CardHeader>
         <CardTitle className="text-xl md:text-2xl">Group Members</CardTitle>
       </CardHeader>

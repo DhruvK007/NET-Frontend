@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/axios-server";
 import { currentUserServer } from "@/lib/currentUserServer";
 import GroupClientComponent from "./_components/GroupClientComponet";
+import { json } from "stream/consumers";
 
 
 export default async function GroupPage(params: { params: { groupID: string } }) {
@@ -18,14 +19,32 @@ export default async function GroupPage(params: { params: { groupID: string } })
   try {
     const response = await client.get(`/api/Group/${groupId}/PageData`);
 
-    console.log(JSON.stringify(response.data));
+    // console.log(JSON.stringify(response.data));
     
 
-    console.log("usersYouNeedToPay");
-    console.log(response.data.usersYouNeedToPay);
+    // console.log("usersYouNeedToPay");
+    // console.log(JSON.stringify(response.data.usersYouNeedToPay));
 
-    console.log("Transaction");
-    console.log(response.data.transactionData);
+    let usersYouNeedToPayData = response.data.usersYouNeedToPay;
+
+    usersYouNeedToPayData = usersYouNeedToPayData.flatMap((user: { transactions: any[]; name: any; userId: any; }) =>
+      user.transactions.map((transaction) => ({
+        expenseId: transaction.expenseId,
+        memberName: user.name,
+        memberId: user.userId,
+        amount: transaction.amount,
+      }))
+    );
+  
+  // console.log("usersYouNeedToPayData");
+  
+
+  // console.log(usersYouNeedToPayData); 
+  
+
+
+    // console.log("Transaction");
+    // console.log(response.data.transactionData);
     
     const {
       groupName,
@@ -47,7 +66,7 @@ export default async function GroupPage(params: { params: { groupID: string } })
         userId={userId}
         leave={leave}
         groupMembers={groupMembers}
-        usersYouNeedToPay={usersYouNeedToPay}
+        usersYouNeedToPay={usersYouNeedToPayData}
         transactionData={transactionData}
         balance={balance}
         token={token}

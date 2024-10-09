@@ -1,4 +1,5 @@
-"use client"
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -31,13 +32,14 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
-
+// import { settleUp } from "../group"
 import { UserAvatar } from "./UserAvatar"
+import { createClient } from "@/lib/axios-server"
 
 interface GroupMember {
   userId: string
   name: string
-  avatar?: string
+  avatar: string
 }
 
 const formSchema = z.object({
@@ -54,25 +56,18 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>
 
 interface Expense {
-  id: string
-  description: string
-  amount: number
-}
-
-interface EnhancedUserToPay {
-  id: string
+  expenseId: string
   memberName: string
   memberId: string
-  // expenses: Expense[]
-  amountToPay: number
-  groupexpanceid: string
+  amount: number
 }
 
 interface SettleUpProps {
   groupMemberName: GroupMember[]
-  usersYouNeedToPay: EnhancedUserToPay[]
+  usersYouNeedToPay: Expense[]
   user: string
-  params: { groupID: string }
+  params: { groupID: string },
+  token: string
 }
 
 export const UserSelectionModal: React.FC<{
@@ -118,13 +113,14 @@ export const UserSelectionModal: React.FC<{
   )
 }
 
-const ExpenseCard = ({ expense, selectedExpenses, onExpenseChange }) => {
-  const isChecked = selectedExpenses?.includes(expense.id)
 
-  const handleCheckboxChange = (checked) => {
+const ExpenseCard = ({ expense, selectedExpenses, onExpenseChange } : { expense: Expense, selectedExpenses: string[], onExpenseChange: (key: string, value: string | string[]) => void }) => {
+  const isChecked = selectedExpenses?.includes(expense.expenseId)
+
+  const handleCheckboxChange = (checked: boolean) => {
     const updatedExpenses = checked
-      ? [...selectedExpenses, expense.id]
-      : selectedExpenses.filter((id) => id !== expense.id)
+      ? [...selectedExpenses, expense.expenseId]
+      : selectedExpenses.filter((id) => id !== expense.expenseId)
     onExpenseChange("selectedExpenses", updatedExpenses)
   }
 
@@ -132,10 +128,10 @@ const ExpenseCard = ({ expense, selectedExpenses, onExpenseChange }) => {
     <div className="flex min-h-[9vh] cursor-pointer items-center justify-between rounded-lg border p-2 shadow-sm transition-shadow hover:shadow-md sm:p-4">
       <div className="flex-grow pr-2">
         <p className="truncate text-sm font-semibold sm:text-base">
-          {expense.description}
+          {/* Expense ID: {expense.expenseId} */}
         </p>
         <p className="text-xs text-gray-600 sm:text-sm">
-          Amount to Pay: ₹{expense.amountToPay}
+          Amount to Pay: ₹{expense.amount.toFixed(2)}
         </p>
       </div>
       <div>
@@ -148,28 +144,21 @@ const ExpenseCard = ({ expense, selectedExpenses, onExpenseChange }) => {
     </div>
   )
 }
-// Function to open the dialog
-const openSettleDialog = (expense: EnhancedUserToPay) => {
-  // Implement the logic to open the dialog with expense details
-  // console.log("Open settle dialog for:", expense)
-}
 
 export function SettleUp({
   groupMemberName,
   usersYouNeedToPay,
   user,
   params: { groupID },
+  token
 }: SettleUpProps) {
   const [open, setOpen] = useState(false)
   const [userSelectionOpen, setUserSelectionOpen] = useState(false)
-  const [selectingFor, setSelectingFor] = useState<
-    "fromUser" | "toUser" | null
-  >(null)
+  const [selectingFor, setSelectingFor] = useState<"fromUser" | "toUser" | null>(null)
   const router = useRouter()
-  const safeUsersYouNeedToPay = useMemo(
-    () => usersYouNeedToPay || [],
-    [usersYouNeedToPay]
-  )
+  const safeUsersYouNeedToPay = useMemo(() => usersYouNeedToPay || [], [usersYouNeedToPay])
+
+  const client = createClient(token);
 
   const availableRecipients = useMemo(
     () =>
@@ -209,60 +198,114 @@ export function SettleUp({
     setUserSelectionOpen(false)
   }
 
-  // handle form submission
+
+  // Form submission
   const handleSubmit = async (data: FormSchema) => {
-    const selectedUser = usersYouNeedToPay.find((u) => u.memberId === data.toUser)
+    const { fromUser, toUser, selectedExpenses, transactionDate } = data
+
+    const selectedUser = usersYouNeedToPay.find(
+      (user) => user.memberId === toUser
+    ) 
     if (!selectedUser) {
-      toast.error("Selected user not found.")
+      toast.error("Selected user not found.", {
+        closeButton: true,
+        icon: "❌",
+        duration: 4500,
+      })
       return
     }
 
     const expenseDetails = usersYouNeedToPay
-      .filter((expense) => data.selectedExpenses.includes(expense.id))
+      .filter((expense) => selectedExpenses.includes(expense.expenseId))
       .map((expense) => ({
-        ExpenseId: expense.id,
-        Amount: expense.amountToPay,
-        GroupExpenseId: expense.id,
+        expenseId: expense.expenseId,
+        amount: expense.amount,
+        groupexpenceId: expense.expenseId,
       }))
 
+    const loading = toast.loading("Settling up...")
+    setOpen(false)
+
+    console.log("settleup handle submit");
+    
+
+
+    console.log("expenseDetails", expenseDetails);
+    console.log("fromUser", fromUser);
+    console.log("toUser", toUser);
+    console.log("selectedExpenses", selectedExpenses);
+    console.log("transactionDate", transactionDate);
+    
+    
+    console.log("Inside settleup handle submit");
+    
+    
+    
+
     try {
-      const response = await fetch('/api/GroupExpense/SettleUp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          GroupID: groupID,
-          PayerId: user,
-          RecipientId: selectedUser.memberId,
-          ExpenseIds: expenseDetails,
-          TransactionDate: data.transactionDate.toISOString(),
-        }),
-      })
 
-      if (!response.ok) throw new Error('Failed to settle up')
+      const response = await client.post("/api/GroupExpense/SettleUp", {
+        groupID: groupID,
+        payerId: fromUser,
+        recipientId: toUser,
+        expenseIds: expenseDetails.map(expense => ({
+            expenseId: expense.expenseId,
+            amount: expense.amount,
+            groupExpenseId: expense.groupexpenceId // Ensure this key is correct
+        })),
+        transactionDate: transactionDate.toISOString() // Ensure date is in ISO format
+    });
+    
 
-      const result = await response.json()
-      toast.success(result.Message)
-      router.refresh()
+        toast.dismiss(loading);
+        if (response) {
+          toast.success("Successfully settled up!", {
+            closeButton: true,
+            icon: "🤝",
+            duration: 4500,
+          });
+  
+          form.reset();
+          router.refresh();
+        } else {
+          console.error("Failed to Add Expense");
+          console.log(response);
+  
+          toast.error("Error setting up......", {
+            closeButton: true,
+            icon: "❌",
+            duration: 4500,
+          });
+        }
+      
+
+     
+
       form.reset()
-      setOpen(false)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "An unknown error occurred")
+      console.error(error)
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred"
+      toast.error(errorMessage, {
+        closeButton: true,
+        icon: "❌",
+        duration: 4500,
+      })
+    } finally {
+      toast.dismiss(loading);
     }
   }
+
   const toUser = form.watch("toUser")
 
   const selectedUserExpenses = useMemo(() => {
-    const selectedUser = safeUsersYouNeedToPay.filter(
-      (user) => user.memberId === toUser
-    )
-    // console.log(safeUsersYouNeedToPay, toUser, selectedUser)
-    return selectedUser ? selectedUser : []
+    return safeUsersYouNeedToPay.filter((expense) => expense.memberId === toUser)
   }, [safeUsersYouNeedToPay, toUser])
 
   const totalAmount = useMemo(() => {
     return selectedUserExpenses
-      .filter((expense) => form.watch("selectedExpenses").includes(expense.id))
-      .reduce((sum, expense) => sum + expense.amountToPay, 0)
+      .filter((expense) => form.watch("selectedExpenses").includes(expense.expenseId))
+      .reduce((sum, expense) => sum + expense.amount, 0)
   }, [selectedUserExpenses, form.watch("selectedExpenses")])
 
   if (safeUsersYouNeedToPay.length === 0) {
@@ -363,7 +406,7 @@ export function SettleUp({
                   >
                     {selectedUserExpenses.map((expense) => (
                       <ExpenseCard
-                        key={expense.memberId + expense.amountToPay}
+                        key={expense.expenseId}
                         expense={expense}
                         selectedExpenses={form.watch("selectedExpenses")}
                         onExpenseChange={form.setValue}
@@ -417,7 +460,7 @@ export function SettleUp({
               <div className="w-full text-center text-lg font-semibold sm:w-auto sm:text-left">
                 Total: ₹{totalAmount.toFixed(2)}
               </div>
-              <div className="flex w-full flex-col justify-center space-y-2 sm:w-auto sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0">
+              <div className="flex w-full  flex-col justify-center space-y-2 sm:w-auto sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0">
                 <Button
                   type="button"
                   variant="outline"
@@ -448,4 +491,5 @@ export function SettleUp({
     </Dialog>
   )
 }
+
 export default SettleUp

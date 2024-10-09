@@ -65,6 +65,7 @@ export default function GroupClientComponent({
                 expenses: [],
               }))}
               user={userId}
+              token={token}
             />
           </div>
         </div>

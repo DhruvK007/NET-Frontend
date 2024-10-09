@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import React, { useState, useMemo } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import React, { useState, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,35 +9,35 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   ArrowUpDown,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
-import TransactionTableSkeleton from "./TransactionSkeleton"
+} from "lucide-react";
+import TransactionTableSkeleton from "./TransactionSkeleton";
 
 interface ExpenseSplit {
-  userName: string
-  amount: number
-  status: number
+  userName: string;
+  amount: number;
+  status: number;
 }
 
 interface Transaction {
-  id: string
-  expenseId: string
-  amount: number
-  category: string
-  paidBy: string
-  description: string
-  date: string
-  status: number
-  PaidByName: string
-  splits: ExpenseSplit[]
+  id: string;
+  expenseId: string;
+  amount: number;
+  category: string;
+  paidBy: string;
+  description: string;
+  date: string;
+  status: number;
+  PaidByName: string;
+  splits: ExpenseSplit[];
 }
 
 const columns = [
@@ -48,36 +48,40 @@ const columns = [
   { id: "amount", label: "Amount", sortable: true },
   { id: "status", label: "Status", sortable: false },
   { id: "action", label: "View split", sortable: false },
-]
+];
 
 export default function Transaction({
   transactionsData,
   loading,
 }: {
-  transactionsData: Transaction[]
-  loading: boolean
+  transactionsData: Transaction[];
+  loading: boolean;
 }) {
-  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
-  const [showDetailed, setShowDetailed] = useState(false)
-  const [selectedColumns, setSelectedColumns] = useState(columns.map((col) => col.id))
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(
+    null
+  );
+  const [showDetailed, setShowDetailed] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState(
+    columns.map((col) => col.id)
+  );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<{
-    key: string
-    direction: "ascending" | "descending"
-  } | null>(null)
+    key: string;
+    direction: "ascending" | "descending";
+  } | null>(null);
 
   const handleSplitClick = (expenseId: string) => {
-    setSelectedExpenseId(prevId => prevId === expenseId ? null : expenseId)
-  }
+    setSelectedExpenseId((prevId) => (prevId === expenseId ? null : expenseId));
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -85,55 +89,61 @@ export default function Transaction({
       currency: "INR",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const filteredTransactions = useMemo(() => {
-    if (!transactionsData) return []
+    if (!transactionsData) return [];
     let filtered = showDetailed
       ? transactionsData
-      : transactionsData.filter((t) => t.status !== 3)
+      : transactionsData.filter((t) => t.status !== 3);
 
     if (sortConfig !== null) {
       filtered.sort((a, b) => {
-        if (a[sortConfig.key as keyof Transaction] < b[sortConfig.key as keyof Transaction]) {
-          return sortConfig.direction === "ascending" ? -1 : 1
+        if (
+          a[sortConfig.key as keyof Transaction] <
+          b[sortConfig.key as keyof Transaction]
+        ) {
+          return sortConfig.direction === "ascending" ? -1 : 1;
         }
-        if (a[sortConfig.key as keyof Transaction] > b[sortConfig.key as keyof Transaction]) {
-          return sortConfig.direction === "ascending" ? 1 : -1
+        if (
+          a[sortConfig.key as keyof Transaction] >
+          b[sortConfig.key as keyof Transaction]
+        ) {
+          return sortConfig.direction === "ascending" ? 1 : -1;
         }
-        return 0
-      })
+        return 0;
+      });
     }
 
-    return filtered
-  }, [transactionsData, showDetailed, sortConfig])
+    return filtered;
+  }, [transactionsData, showDetailed, sortConfig]);
 
   const paginatedTransactions = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredTransactions.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredTransactions, currentPage, itemsPerPage])
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredTransactions, currentPage, itemsPerPage]);
 
-  const pageCount = Math.ceil(filteredTransactions.length / itemsPerPage)
+  const pageCount = Math.ceil(filteredTransactions.length / itemsPerPage);
 
   const requestSort = (key: string) => {
-    let direction: "ascending" | "descending" = "ascending"
+    let direction: "ascending" | "descending" = "ascending";
     if (
       sortConfig &&
       sortConfig.key === key &&
       sortConfig.direction === "ascending"
     ) {
-      direction = "descending"
+      direction = "descending";
     }
-    setSortConfig({ key, direction })
-  }
+    setSortConfig({ key, direction });
+  };
 
   if (loading) {
-    return <TransactionTableSkeleton />
+    return <TransactionTableSkeleton />;
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-background">
+    <Card className="w-full max-w-4xl mx-auto bg-background dark:border-none">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-foreground">
           Transactions
@@ -179,7 +189,9 @@ export default function Transaction({
                           <Button
                             variant="ghost"
                             onClick={() => requestSort(column.id)}
-                            className={`flex items-center ${column.id === "amount" ? "justify-end w-full" : ""}`}
+                            className={`flex items-center ${
+                              column.id === "amount" ? "justify-end w-full" : ""
+                            }`}
                           >
                             {column.label}
                             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -305,7 +317,10 @@ export default function Transaction({
                                   ))
                                 ) : (
                                   <TableRow>
-                                    <TableCell colSpan={3} className="text-center">
+                                    <TableCell
+                                      colSpan={3}
+                                      className="text-center"
+                                    >
                                       No splits available
                                     </TableCell>
                                   </TableRow>
@@ -323,5 +338,5 @@ export default function Transaction({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
