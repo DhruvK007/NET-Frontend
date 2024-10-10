@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -17,29 +17,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { useRouter } from "next/navigation"
-import React, { useEffect, useMemo, useState } from "react"
-import { useForm } from "react-hook-form"
-import { toast } from "sonner"
-import * as z from "zod"
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 // import { settleUp } from "../group"
-import { UserAvatar } from "./UserAvatar"
-import { createClient } from "@/lib/axios-server"
+import { UserAvatar } from "./UserAvatar";
+import { createClient } from "@/lib/axios-server";
 
 interface GroupMember {
-  userId: string
-  name: string
-  avatar: string
+  userId: string;
+  name: string;
+  avatar: string;
 }
 
 const formSchema = z.object({
@@ -51,32 +51,32 @@ const formSchema = z.object({
   transactionDate: z.date().refine((date) => date <= new Date(), {
     message: "Transaction date cannot be in the future",
   }),
-})
+});
 
-type FormSchema = z.infer<typeof formSchema>
+type FormSchema = z.infer<typeof formSchema>;
 
 interface Expense {
-  expenseId: string
-  memberName: string
-  memberId: string
-  amount: number
+  expenseId: string;
+  memberName: string;
+  memberId: string;
+  amount: number;
 }
 
 interface SettleUpProps {
-  groupMemberName: GroupMember[]
-  usersYouNeedToPay: Expense[]
-  user: string
-  params: { groupID: string },
-  token: string
+  groupMemberName: GroupMember[];
+  usersYouNeedToPay: Expense[];
+  user: string;
+  params: { groupID: string };
+  token: string;
 }
 
 export const UserSelectionModal: React.FC<{
-  isOpen: boolean
-  onClose: () => void
-  onSelect: (user: GroupMember) => void
-  availableUsers: GroupMember[]
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (user: GroupMember) => void;
+  availableUsers: GroupMember[];
 }> = ({ isOpen, onClose, onSelect, availableUsers }) => {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -97,8 +97,8 @@ export const UserSelectionModal: React.FC<{
                   variant="outline"
                   className="flex h-full items-center justify-start space-x-2 p-2"
                   onClick={() => {
-                    onSelect(user)
-                    onClose()
+                    onSelect(user);
+                    onClose();
                   }}
                 >
                   <UserAvatar user={user} size={40} />
@@ -110,19 +110,26 @@ export const UserSelectionModal: React.FC<{
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-
-const ExpenseCard = ({ expense, selectedExpenses, onExpenseChange } : { expense: Expense, selectedExpenses: string[], onExpenseChange: (key: string, value: string | string[]) => void }) => {
-  const isChecked = selectedExpenses?.includes(expense.expenseId)
+const ExpenseCard = ({
+  expense,
+  selectedExpenses,
+  onExpenseChange,
+}: {
+  expense: Expense;
+  selectedExpenses: string[];
+  onExpenseChange: (key: string, value: string | string[]) => void;
+}) => {
+  const isChecked = selectedExpenses?.includes(expense.expenseId);
 
   const handleCheckboxChange = (checked: boolean) => {
     const updatedExpenses = checked
       ? [...selectedExpenses, expense.expenseId]
-      : selectedExpenses.filter((id) => id !== expense.expenseId)
-    onExpenseChange("selectedExpenses", updatedExpenses)
-  }
+      : selectedExpenses.filter((id) => id !== expense.expenseId);
+    onExpenseChange("selectedExpenses", updatedExpenses);
+  };
 
   return (
     <div className="flex min-h-[9vh] cursor-pointer items-center justify-between rounded-lg border p-2 shadow-sm transition-shadow hover:shadow-md sm:p-4">
@@ -142,21 +149,26 @@ const ExpenseCard = ({ expense, selectedExpenses, onExpenseChange } : { expense:
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
 export function SettleUp({
   groupMemberName,
   usersYouNeedToPay,
   user,
   params: { groupID },
-  token
+  token,
 }: SettleUpProps) {
-  const [open, setOpen] = useState(false)
-  const [userSelectionOpen, setUserSelectionOpen] = useState(false)
-  const [selectingFor, setSelectingFor] = useState<"fromUser" | "toUser" | null>(null)
-  const router = useRouter()
-  const safeUsersYouNeedToPay = useMemo(() => usersYouNeedToPay || [], [usersYouNeedToPay])
+  const [open, setOpen] = useState(false);
+  const [userSelectionOpen, setUserSelectionOpen] = useState(false);
+  const [selectingFor, setSelectingFor] = useState<
+    "fromUser" | "toUser" | null
+  >(null);
+  const router = useRouter();
+  const safeUsersYouNeedToPay = useMemo(
+    () => usersYouNeedToPay || [],
+    [usersYouNeedToPay]
+  );
 
   const client = createClient(token);
 
@@ -166,13 +178,13 @@ export function SettleUp({
         safeUsersYouNeedToPay.some((user) => user.memberId === member.userId)
       ),
     [groupMemberName, safeUsersYouNeedToPay]
-  )
+  );
 
   const defaultToUser = useMemo(() => {
     return safeUsersYouNeedToPay.length > 0
       ? safeUsersYouNeedToPay[0].memberId
-      : ""
-  }, [safeUsersYouNeedToPay])
+      : "";
+  }, [safeUsersYouNeedToPay]);
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -182,136 +194,128 @@ export function SettleUp({
       selectedExpenses: [],
       transactionDate: new Date(),
     },
-  })
+  });
 
   useEffect(() => {
     if (defaultToUser) {
-      form.setValue("toUser", defaultToUser)
+      form.setValue("toUser", defaultToUser);
     }
-  }, [defaultToUser, form])
+  }, [defaultToUser, form]);
 
   const handleUserSelect = (selectedUser: GroupMember) => {
     if (selectingFor === "toUser") {
-      form.setValue("toUser", selectedUser.userId)
-      form.setValue("selectedExpenses", [])
+      form.setValue("toUser", selectedUser.userId);
+      form.setValue("selectedExpenses", []);
     }
-    setUserSelectionOpen(false)
-  }
-
+    setUserSelectionOpen(false);
+  };
 
   // Form submission
   const handleSubmit = async (data: FormSchema) => {
-    const { fromUser, toUser, selectedExpenses, transactionDate } = data
+    const { fromUser, toUser, selectedExpenses, transactionDate } = data;
 
     const selectedUser = usersYouNeedToPay.find(
       (user) => user.memberId === toUser
-    ) 
+    );
     if (!selectedUser) {
       toast.error("Selected user not found.", {
         closeButton: true,
         icon: "❌",
         duration: 4500,
-      })
-      return
+      });
+      return;
     }
 
+    console.log(usersYouNeedToPay);
     const expenseDetails = usersYouNeedToPay
       .filter((expense) => selectedExpenses.includes(expense.expenseId))
       .map((expense) => ({
         expenseId: expense.expenseId,
         amount: expense.amount,
         groupexpenceId: expense.expenseId,
-      }))
+      }));
 
-    const loading = toast.loading("Settling up...")
-    setOpen(false)
+    const loading = toast.loading("Settling up...");
+    setOpen(false);
 
     console.log("settleup handle submit");
-    
-
 
     console.log("expenseDetails", expenseDetails);
     console.log("fromUser", fromUser);
     console.log("toUser", toUser);
     console.log("selectedExpenses", selectedExpenses);
     console.log("transactionDate", transactionDate);
-    
-    
+    console.log("groupID", groupID);
+
     console.log("Inside settleup handle submit");
-    
-    
-    
 
     try {
-
       const response = await client.post("/api/GroupExpense/SettleUp", {
         groupID: groupID,
         payerId: fromUser,
         recipientId: toUser,
-        expenseIds: expenseDetails.map(expense => ({
-            expenseId: expense.expenseId,
-            amount: expense.amount,
-            groupExpenseId: expense.groupexpenceId // Ensure this key is correct
+        expenseIds: expenseDetails.map((expense) => ({
+          expenseId: expense.expenseId,
+          amount: expense.amount,
+          groupExpenseId: expense.groupexpenceId, // Ensure this key is correct
         })),
-        transactionDate: transactionDate.toISOString() // Ensure date is in ISO format
-    });
-    
+        transactionDate: transactionDate.toISOString(), // Ensure date is in ISO format
+      });
 
-          toast.dismiss(loading);
+      toast.dismiss(loading);
 
-          console.log("response", response);
-          
+      console.log("response", response);
 
+      if (response.status === 200) {
+        toast.success("Successfully settled up!", {
+          closeButton: true,
+          icon: "🤝",
+          duration: 4500,
+        });
 
-        if (response.status === 200) {
-          toast.success("Successfully settled up!", {
-            closeButton: true,
-            icon: "🤝",
-            duration: 4500,
-          });
-  
-          form.reset();
-          router.refresh();
-        } else {
-          console.error("Failed to Add Expense");
-          console.log(response);
-  
-          toast.error("Error setting up......", {
-            closeButton: true,
-            icon: "❌",
-            duration: 4500,
-          });
-        }
-      
+        form.reset();
+        router.refresh();
+      } else {
+        console.error("Failed to Add Expense");
+        console.log(response);
 
-     
+        toast.error("Error setting up......", {
+          closeButton: true,
+          icon: "❌",
+          duration: 4500,
+        });
+      }
 
-      form.reset()
+      form.reset();
     } catch (error) {
-      console.error(error)
+      console.error(error);
       const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred"
+        error instanceof Error ? error.message : "An unknown error occurred";
       toast.error(errorMessage, {
         closeButton: true,
         icon: "❌",
         duration: 4500,
-      })
+      });
     } finally {
       toast.dismiss(loading);
     }
-  }
+  };
 
-  const toUser = form.watch("toUser")
+  const toUser = form.watch("toUser");
 
   const selectedUserExpenses = useMemo(() => {
-    return safeUsersYouNeedToPay.filter((expense) => expense.memberId === toUser)
-  }, [safeUsersYouNeedToPay, toUser])
+    return safeUsersYouNeedToPay.filter(
+      (expense) => expense.memberId === toUser
+    );
+  }, [safeUsersYouNeedToPay, toUser]);
 
   const totalAmount = useMemo(() => {
     return selectedUserExpenses
-      .filter((expense) => form.watch("selectedExpenses").includes(expense.expenseId))
-      .reduce((sum, expense) => sum + expense.amount, 0)
-  }, [selectedUserExpenses, form.watch("selectedExpenses")])
+      .filter((expense) =>
+        form.watch("selectedExpenses").includes(expense.expenseId)
+      )
+      .reduce((sum, expense) => sum + expense.amount, 0);
+  }, [selectedUserExpenses, form.watch("selectedExpenses")]);
 
   if (safeUsersYouNeedToPay.length === 0) {
     return (
@@ -322,7 +326,7 @@ export function SettleUp({
       >
         No users to pay
       </Button>
-    )
+    );
   }
 
   return (
@@ -367,8 +371,8 @@ export function SettleUp({
                         variant="outline"
                         className="h-24 w-24 rounded-full border-none p-0"
                         onClick={() => {
-                          setSelectingFor("toUser")
-                          setUserSelectionOpen(true)
+                          setSelectingFor("toUser");
+                          setUserSelectionOpen(true);
                         }}
                       >
                         <UserAvatar
@@ -407,7 +411,11 @@ export function SettleUp({
                     </FormLabel>
                   </div>
                   <div
-                    className={`grid grid-cols-1 content-start gap-4 ${selectedUserExpenses.length < 3 ? "" : "max-h-[30vh] sm:max-h-[40vh]"} overflow-y-auto`}
+                    className={`grid grid-cols-1 content-start gap-4 ${
+                      selectedUserExpenses.length < 3
+                        ? ""
+                        : "max-h-[30vh] sm:max-h-[40vh]"
+                    } overflow-y-auto`}
                   >
                     {selectedUserExpenses.map((expense) => (
                       <ExpenseCard
@@ -494,7 +502,7 @@ export function SettleUp({
         availableUsers={availableRecipients}
       />
     </Dialog>
-  )
+  );
 }
 
-export default SettleUp
+export default SettleUp;

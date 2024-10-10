@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import PageTitle from "./PageTitle"
-import {SettleUp} from "./SettleUp"
-import { GroupMember } from "./GroupMember"
-import Transaction from "./Transaction"
-import { Card, CardContent } from "@/components/ui/card"
-import AddExpense from "./AddExpense"
+import PageTitle from "./PageTitle";
+import { SettleUp } from "./SettleUp";
+import { GroupMember } from "./GroupMember";
+import Transaction from "./Transaction";
+import { Card, CardContent } from "@/components/ui/card";
+import AddExpense from "./AddExpense";
 
 interface GroupClientProps {
-  groupName: string
-  creatorId: string
-  userName: string
-  userId: string
+  groupName: string;
+  creatorId: string;
+  userName: string;
+  userId: string;
   leave: {
-    status: "settled up" | "gets back" | "owes"
-    amount: number
-    userId: string
-    groupId: string
-  }
-  groupMembers: { userId: string; name: string }[]
-  usersYouNeedToPay: any[]
-  transactionData: any[]
-  balance: any[]
-  token: string
+    status: "settled up" | "gets back" | "owes";
+    amount: number;
+    userId: string;
+    groupId: string;
+  };
+  groupMembers: { userId: string; name: string }[];
+  usersYouNeedToPay: any[];
+  transactionData: any[];
+  balance: any[];
+  token: string;
 }
 
 export default function GroupClientComponent({
@@ -37,6 +37,8 @@ export default function GroupClientComponent({
   balance,
   token,
 }: GroupClientProps) {
+  console.log("GroupClientComponent");
+  console.log(balance);
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-wrap items-center justify-between p-4">
       <div className="flex w-full flex-col gap-5 px-4">
@@ -57,7 +59,7 @@ export default function GroupClientComponent({
               user={userId}
               token={token}
             />
-           <SettleUp
+            <SettleUp
               params={{ groupID: leave.groupId }}
               groupMemberName={groupMembers}
               usersYouNeedToPay={usersYouNeedToPay.map((user) => ({
@@ -83,5 +85,5 @@ export default function GroupClientComponent({
         </section>
       </div>
     </div>
-  )
+  );
 }
