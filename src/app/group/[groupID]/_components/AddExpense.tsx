@@ -139,7 +139,7 @@ export function AddExpense({
       groupMemberName.map((member) => ({
         id: member.userId,
         name: member.name,
-        avatar: member.avatar ?? '',
+        avatar: member.avatar ?? "",
         included: true,
         isMe: member.userId === user,
         amount: 0,
@@ -278,7 +278,7 @@ export function AddExpense({
       "Shopping",
       "Fuel",
       "Groceries",
-    ]
+    ];
 
     const categoryNumber = CategoryTypee.indexOf(data.category);
 
@@ -294,15 +294,12 @@ export function AddExpense({
       });
 
       if (response) {
-        toast.success(
-          `Expense added successfully.`,
-          {
-            closeButton: true,
-            icon: "😤",
-            duration: 4500,
-            id: loading,
-          }
-        );
+        toast.success(`Expense added successfully.`, {
+          closeButton: true,
+          icon: "😤",
+          duration: 4500,
+          id: loading,
+        });
 
         form.reset();
         router.refresh();
@@ -381,7 +378,7 @@ export function AddExpense({
                               <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-[200px]">
+                          <DropdownMenuContent className="w-[200px] dark:border-none">
                             <ScrollArea className="h-[300px]">
                               {Object.entries(CategoryTypes).map(
                                 ([key, value]) => (
@@ -419,7 +416,7 @@ export function AddExpense({
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
                   <div className="flex">
-                    <div className="rounded border pl-[10px] pr-[10px] pt-[5px]">
+                    <div className="rounded pl-[10px] pr-[10px] pt-[5px]">
                       ₹
                     </div>
                     <FormControl>
@@ -453,7 +450,7 @@ export function AddExpense({
                       <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Select user" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="dark:border-none">
                         {members.map((member) => (
                           <SelectItem key={member.id} value={member.name}>
                             {member.name}
@@ -488,7 +485,10 @@ export function AddExpense({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent
+                        className="w-auto p-0 dark:border-none"
+                        align="start"
+                      >
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -522,7 +522,7 @@ export function AddExpense({
                       <SelectTrigger className="w-full sm:w-[120px]">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="dark:border-none">
                         <SelectItem value="Equally">Equally</SelectItem>
                         <SelectItem value="As Amounts">As Amounts</SelectItem>
                       </SelectContent>

@@ -40,7 +40,7 @@ export default function GroupClientComponent({
   console.log("GroupClientComponent");
   console.log(balance);
   return (
-    <div className="mx-auto flex w-full max-w-screen-xl flex-wrap items-center justify-between p-4">
+    <div className="mx-auto flex w-full max-w-screen-xl flex-wrap items-center justify-between mt-10">
       <div className="flex w-full flex-col gap-5 px-4">
         <PageTitle title={groupName} leave={leave} createrId={creatorId} />
         <div className="flex w-full flex-wrap items-center justify-between gap-4">
@@ -72,12 +72,12 @@ export default function GroupClientComponent({
           </div>
         </div>
         <section className="text-bl grid w-full grid-cols-1 gap-4 transition-all lg:grid-cols-3">
-          <Card className="col-span-1 md:col-span-2">
+          <Card className="col-span-1 md:col-span-2 dark:border-neutral-700">
             <CardContent className="p-0">
               <Transaction transactionsData={transactionData} loading={false} />
             </CardContent>
           </Card>
-          <Card className="col-span-1">
+          <Card className="col-span-1 dark:border-neutral-700">
             <CardContent className="p-0">
               <GroupMember loading={false} balance={balance} />
             </CardContent>

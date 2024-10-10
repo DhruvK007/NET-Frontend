@@ -143,7 +143,7 @@ export default function Transaction({
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-background dark:border-none">
+    <Card className="w-full max-w-4xl mx-auto dark:border-none">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-foreground">
           Transactions
