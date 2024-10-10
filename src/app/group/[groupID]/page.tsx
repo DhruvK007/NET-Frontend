@@ -56,10 +56,6 @@ export default async function GroupPage(params: {
       balance,
     } = response.data;
 
-    console.log(response.data);
-
-    console.log("creatorId", creatorId);
-
     return (
       <GroupClientComponent
         groupName={groupName}
