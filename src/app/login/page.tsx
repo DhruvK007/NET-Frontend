@@ -48,6 +48,7 @@ export default function LoginForm() {
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
+    const loadingToast = toast.loading("Logging in...");
     try {
       const response = await axios.post(
         "http://localhost:2849/api/Users/Login",
@@ -72,13 +73,16 @@ export default function LoginForm() {
         );
         if (profileResponse.status === 200) {
           setUser({ ...profileResponse.data, token });
-          toast.success("Login successful!");
+          toast.success("Login successful!", { id: loadingToast });
           router.push("/group"); // Redirect to dashboard or home page
         }
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please check your credentials and try again.");
+      toast.error(
+        "Login failed. Please check your credentials and try again.",
+        { id: loadingToast }
+      );
     } finally {
       setIsLoading(false);
     }
