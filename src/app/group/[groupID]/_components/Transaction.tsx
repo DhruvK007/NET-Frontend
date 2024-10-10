@@ -253,7 +253,7 @@ export default function Transaction({
                             {transaction.status === 2
                               ? "Paid"
                               : transaction.status === 1
-                              ? "Partially Paid"
+                              ? "Partial"
                               : "Pending"}
                           </span>
                         </TableCell>

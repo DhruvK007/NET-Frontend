@@ -6,6 +6,7 @@ import { GroupMember } from "./GroupMember";
 import Transaction from "./Transaction";
 import { Card, CardContent } from "@/components/ui/card";
 import AddExpense from "./AddExpense";
+import LeaveButton from "./LeaveButton";
 
 interface GroupClientProps {
   groupName: string;
@@ -38,11 +39,21 @@ export default function GroupClientComponent({
   token,
 }: GroupClientProps) {
   console.log("GroupClientComponent");
-  console.log(balance);
+  // console.log(creatorId);
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-wrap items-center justify-between mt-10">
       <div className="flex w-full flex-col gap-5 px-4">
-        <PageTitle title={groupName} leave={leave} createrId={creatorId} />
+        <div className="flex w-full flex-wrap items-center justify-between">
+          <PageTitle title={groupName} leave={leave} createrId={creatorId} />
+          <LeaveButton
+            creatorId={creatorId}
+            userId={userId}
+            groupId={leave.groupId}
+            amount={leave.amount}
+            status={leave.status}
+            key={userId}
+          />
+        </div>
         <div className="flex w-full flex-wrap items-center justify-between gap-4">
           <p>
             Welcome Back,
