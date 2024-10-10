@@ -101,7 +101,7 @@ export default function GroupContent({
           {createdGroupsData.length === 0 &&
             memberGroups.length === 0 &&
             pendingRequests.length === 0 && (
-              <Card className="bg-white dark:bg-zinc-900">
+              <Card className="bg-white dark:bg-zinc-900 dark:border-neutral-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                     <Users size={24} />
