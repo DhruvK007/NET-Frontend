@@ -293,7 +293,7 @@ export default function Transaction({
                                   transaction.splits.map((split, index) => (
                                     <TableRow key={index}>
                                       <TableCell>{split.userName}</TableCell>
-                                      <TableCell className="text-right">
+                                      <TableCell >
                                         {formatAmount(split.amount)}
                                       </TableCell>
                                       <TableCell>
